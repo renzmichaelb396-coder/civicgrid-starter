@@ -1,8 +1,8 @@
 import { createServerClient as createSSRServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-// Server client — use ONLY in API routes and Server Components.
-// Never import this in client components.
+type CookieToSet = { name: string; value: string; options: Record<string, unknown> }
+
 export async function createServerClient() {
   const cookieStore = await cookies()
   return createSSRServerClient(
@@ -11,10 +11,10 @@ export async function createServerClient() {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
+        setAll: (cookiesToSet: CookieToSet[]) => {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
             )
           } catch {}
         },
@@ -23,7 +23,7 @@ export async function createServerClient() {
   )
 }
 
-// Service role client — use ONLY for admin operations in API routes.
+// Service role client — use ONLY in API routes for admin operations.
 // NEVER expose SUPABASE_SERVICE_ROLE_KEY to the client bundle.
 export async function createServiceClient() {
   const cookieStore = await cookies()
